@@ -1,6 +1,9 @@
 ### GET INFO
 GET http://localhost:3001/info
 
+### GET ALL RENDER
+GET https://render-test-dkba.onrender.com/api/persons
+
 ### GET ALL
 GET http://localhost:3001/api/persons
 
