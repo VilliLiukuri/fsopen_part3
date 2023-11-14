@@ -1,12 +1,13 @@
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const app = express()
 const cors = require('cors')
+const Person = require('./models/Person')
 
 app.use(cors())
 app.use(express.json())
 app.use(express.static('dist'))
-
 
 const requestLogger = (request, response, next) => {
     console.log('Method:', request.method)
@@ -15,6 +16,7 @@ const requestLogger = (request, response, next) => {
     console.log('---')
     next()
 }
+
 morgan.token('body', (req) => {
     if (req.method === 'POST') {
       return JSON.stringify(req.body)
@@ -25,7 +27,7 @@ morgan.token('body', (req) => {
 app.use(requestLogger)
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
-let persons = [
+/*let persons = [
     {
         name: 'Arto Hellas',
         number: '040-123456',
@@ -46,49 +48,51 @@ let persons = [
         number: '39-23-6423122',
         id: 4
     },
-]
+]*/
 
-app.get('/info', (req, res) => {
-    const date = new Date()
-    const currentDate = date.toDateString();
-    const timeZone = date.toString().match(/\(([^)]+)\)$/)[1]
-    const currentTime = date.toLocaleTimeString()
-  
-    res.send(`
-      <p>Phonebook has info for ${persons.length} people</p>
-      <p> ${currentDate} ${currentTime} ${timeZone}</p>
-    `)
+app.get('/info', (req, res, next) => {
+    Person.countDocuments({}).then(count => {
+        const date = new Date()
+        const currentDate = date.toDateString()
+        const timeZone = date.toString().match(/\(([^)]+)\)$/)[1]
+        const currentTime = date.toLocaleTimeString()
+
+        res.send(`
+            <p>Phonebook has info for ${count} people</p>
+            <p> ${currentDate} ${currentTime} ${timeZone}</p>
+        `)
+    })
+    .catch(error => next(error))
 })
 
-app.get('/api/persons', (request, response) => {
-    response.json(persons)
+
+
+app.get('/api/persons', (request, response, next) => {
+    Person.find({}).then(persons => {
+      response.json(persons)
+    })
+    .catch(error => next(error))
   })
 
-app.get('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    const person = persons.find(person => {
-      //console.log(person.id, typeof person.id, id, typeof id, person.id === id)
-      return person.id === id
+app.get('/api/persons/:id', (request, response, next) => {
+    Person.findById(request.params.id).then(person => {
+            response.json(person) 
+        })
+    .catch(error => next(error))
     })
-    if (person) {
-        response.json(person)
-      } else {
-        response.status(404).end()
-      }
-})
 
+app.delete('/api/persons/:id', (request, response, next) => {
+    Person.findByIdAndDelete(request.params.id).then(result => {
+        response.status(204).end()
+      })
+      .catch(error => next(error))
+  })
 
-app.delete('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    persons = persons.filter(person => person.id !== id)
-    response.status(204).end()
-})
-
-const generateRandomId = () => {
+/*const generateRandomId = () => {
     return Math.floor(Math.random() * 1000)
-}
+}*/
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
     const body = request.body
     if (!body.name || !body.number) {
         return response.status(400).json({ 
@@ -100,23 +104,45 @@ app.post('/api/persons', (request, response) => {
             error: 'name must be unique' 
         })
     }
+    const person = new Person({
+        name: body.name,
+        number: body.number,
+    })
+    person.save().then(savedPerson => {
+      response.json(savedPerson)
+    })
+    .catch(error => next(error))
+})
+
+app.put('/api/persons/:id', (request, response, next) => {
+    const body = request.body
     const person = {
         name: body.name,
         number: body.number,
-        id: generateRandomId(),
     }
-    persons = persons.concat(person)
-    response.status(201).json(person)
+    Person.findByIdAndUpdate(request.params.id, person, { new: true })
+        .then(updatedPerson => {
+            response.json(updatedPerson)
+        })
+    .catch(error => next(error))
 })
 
 const unknownEndpoint = (request, response) => {
     response.status(404).send({ error: 'unknown endpoint' })
 }
-
 app.use(unknownEndpoint)
 
+const errorHandler = (error, request, response, next) => {
+    console.error(error.message)
+    if (error.name === 'CastError') {
+      return response.status(400).send({ error: 'malformatted id' })
+    } 
 
-const PORT = process.env.PORT || 3001
+    next(error)
+}
+app.use(errorHandler)
+
+const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`)
 })
