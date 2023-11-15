@@ -36,11 +36,11 @@ const App = () => {
       return
     }
     if (!isValidPhoneNumber(newNumber)) {
-      setErrorMessage('Is not a valid phone number!.');
+      setErrorMessage('Is not a valid phone number!.')
       setTimeout(() => {
-        setErrorMessage(null);
-      }, 5000);
-      return;
+        setErrorMessage(null)
+      }, 5000)
+      return
     }
     const existingPerson = persons.find(person => person.name === newName)
     if (existingPerson) {

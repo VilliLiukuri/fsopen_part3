@@ -17,7 +17,7 @@ mongoose.connect(url)
     console.log('error connecting to MongoDB:', error.message)
   })
 
-const isValidPhoneNumber = value => /^(\d{2}-\d{7}|\d{3}-\d{8})$/.test(value);
+const isValidPhoneNumber = value => /^(\d{2}-\d{7}|\d{3}-\d{8})$/.test(value)
 
 const personSchema = new mongoose.Schema({
   name: {
