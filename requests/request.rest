@@ -11,7 +11,7 @@ GET http://localhost:3001/api/persons
 GET http://localhost:3001/api/persons/654a18d5c5a5e98e93b9ea64
 
 ### DELETE ID
-DELETE http://localhost:3001/api/persons/654a3781d54d93b31f189c47
+DELETE http://localhost:3001/api/persons/654a18d5c5a5e98e93b9ea64
 
 ### ADD PERSON
 POST http://localhost:3001/api/persons

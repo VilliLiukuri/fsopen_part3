@@ -1,3 +1,5 @@
+/* eslint-disable react/prop-types */
+/* eslint-disable no-unused-vars */
 import { useState, useEffect } from 'react'
 import FilterForm from './components/FilterForm'
 import PersonForm from './components/PersonForm'
@@ -24,8 +26,24 @@ const App = () => {
   const handleNumberChange = (event) => {setNewNumber(event.target.value)}
   const handleNameFilter = (event) => {setFilter(event.target.value)}
 
+  const isValidPhoneNumber = (number) =>/^(\d{2}-\d{7}|\d{3}-\d{8})$/.test(number)
+
   const addPerson = (event) => {
     event.preventDefault()
+    if (newName.length < 3) {
+      setErrorMessage('Name must be at least three characters long.')
+      setTimeout(() => {
+        setErrorMessage(null)
+      }, 5000)
+      return
+    }
+    if (!isValidPhoneNumber(newNumber)) {
+      setErrorMessage('Is not a valid phone number!.');
+      setTimeout(() => {
+        setErrorMessage(null);
+      }, 5000);
+      return;
+    }
     const existingPerson = persons.find(person => person.name === newName)
     if (existingPerson) {
       if (window.confirm(`${newName} is already in the phonebook. Do you want to update the number?`)) {
