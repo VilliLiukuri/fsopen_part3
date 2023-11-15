@@ -1,5 +1,3 @@
-/* eslint-disable react/prop-types */
-/* eslint-disable no-unused-vars */
 import { useState, useEffect } from 'react'
 import FilterForm from './components/FilterForm'
 import PersonForm from './components/PersonForm'
